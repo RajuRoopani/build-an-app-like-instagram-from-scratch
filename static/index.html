@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Instagram Clone</title>
+<style>
+/* ── Reset & base ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  background:#fafafa;color:#262626;min-height:100vh}
+button{cursor:pointer;font-family:inherit;border:none;outline:none}
+input,textarea{font-family:inherit}
+
+/* ── Design tokens ── */
+:root{
+  --grad:linear-gradient(135deg,#405DE6,#833AB4,#C13584,#F77737,#FCAF45);
+  --gb:linear-gradient(135deg,#405DE6,#C13584);
+  --red:#ed4956;
+  --blue:#00376b;
+  --ok:#12b668;
+  --bdr:#dbdbdb;
+  --txt:#262626;
+  --mut:#8e8e8e;
+  --card:#fff;
+  --hh:56px;
+}
+
+/* ── Header ── */
+#header{position:fixed;top:0;left:0;right:0;height:var(--hh);
+  background:var(--grad);display:flex;align-items:center;
+  justify-content:space-between;padding:0 16px;z-index:100;
+  box-shadow:0 1px 3px rgba(0,0,0,.15)}
+#logo{font-size:1.4rem;font-weight:700;font-style:italic;color:#fff;
+  letter-spacing:-.5px;user-select:none}
+#hright{display:flex;align-items:center;gap:12px}
+
+/* Nav tabs */
+#navtabs{display:flex;gap:4px}
+.ntab{background:rgba(255,255,255,.15);color:#fff;border-radius:20px;
+  padding:5px 12px;font-size:.8rem;font-weight:600;transition:background .15s;
+  border:1.5px solid rgba(255,255,255,.3)}
+.ntab.active,.ntab:hover{background:rgba(255,255,255,.32)}
+.ntab:focus{outline:2px solid #fff;outline-offset:2px}
+
+/* User switcher */
+#usw{position:relative}
+#usb{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);
+  border:1.5px solid rgba(255,255,255,.5);border-radius:20px;
+  padding:5px 12px 5px 6px;color:#fff;font-size:.875rem;font-weight:600;
+  transition:background .15s}
+#usb:hover{background:rgba(255,255,255,.28)}
+#usb:focus{outline:2px solid #fff;outline-offset:2px}
+#uav{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.7rem;font-weight:700;color:#fff;flex-shrink:0}
+#ulbl{max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#udd{display:none;position:absolute;top:calc(100% + 8px);right:0;
+  background:#fff;border:1px solid var(--bdr);border-radius:8px;
+  min-width:220px;box-shadow:0 4px 16px rgba(0,0,0,.12);z-index:200;overflow:hidden}
+#udd.open{display:block}
+.dui{display:flex;align-items:center;gap:10px;padding:10px 14px;
+  cursor:pointer;font-size:.875rem;transition:background .1s}
+.dui:hover,.dui:focus{background:#f5f5f5;outline:none}
+.dui.sel{font-weight:700;background:#fafafa}
+.dav{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-weight:700;font-size:.8rem;color:#fff;flex-shrink:0}
+.dun{font-weight:600;color:var(--txt);font-size:.875rem}
+.ddn{font-size:.75rem;color:var(--mut)}
+.ddiv{height:1px;background:var(--bdr);margin:4px 0}
+#ddnu{display:flex;align-items:center;gap:8px;padding:10px 14px;
+  font-size:.875rem;color:var(--blue);font-weight:600;cursor:pointer;
+  transition:background .1s}
+#ddnu:hover,#ddnu:focus{background:#f0f4ff;outline:none}
+
+/* New post btn (header) */
+#btn-nav-post{background:rgba(255,255,255,.22);border:1.5px solid rgba(255,255,255,.6);
+  color:#fff;border-radius:20px;padding:6px 14px;font-size:.875rem;font-weight:600;
+  transition:background .15s}
+#btn-nav-post:hover{background:rgba(255,255,255,.35)}
+#btn-nav-post:focus{outline:2px solid #fff;outline-offset:2px}
+
+/* ── Main layout ── */
+#main{padding-top:calc(var(--hh) + 24px);padding-bottom:80px;
+  display:flex;justify-content:center}
+#feed-col{width:100%;max-width:600px;padding:0 0 16px}
+
+/* ── Skeleton loaders ── */
+@keyframes shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}
+.skc{background:#fff;border:1px solid var(--bdr);border-radius:8px;
+  margin-bottom:24px;overflow:hidden}
+.skhr{display:flex;align-items:center;gap:10px;padding:12px 16px}
+.sk{background:linear-gradient(90deg,#ebebeb 25%,#f5f5f5 50%,#ebebeb 75%);
+  background-size:600px 100%;animation:shimmer 1.4s infinite linear;border-radius:4px}
+.skci{border-radius:50%!important;width:36px;height:36px;flex-shrink:0}
+.skls{height:12px;width:80px}
+.sklx{height:10px;width:50px;margin-top:6px}
+.skm{aspect-ratio:1/1;width:100%}
+.skar{padding:10px 16px;display:flex;gap:8px}
+.skb{height:28px;width:60px;border-radius:4px}
+.skcp{padding:0 16px 16px}
+.skt{height:12px;width:70%;margin-bottom:8px}
+.skts{height:12px;width:40%}
+
+/* ── Post card ── */
+.post-card{background:var(--card);border:1px solid var(--bdr);border-radius:8px;
+  margin-bottom:24px;overflow:hidden;transition:box-shadow .2s}
+.post-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.08)}
+
+/* Card header */
+.chdr{display:flex;align-items:center;gap:10px;padding:12px 16px;
+  border-bottom:1px solid var(--bdr)}
+.cav{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:.875rem;font-weight:700;color:#fff;
+  flex-shrink:0;text-transform:uppercase}
+.cui{flex:1;min-width:0}
+.cun{font-size:.875rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cts{font-size:.75rem;color:var(--mut)}
+
+/* Media */
+.cmda{aspect-ratio:1/1;width:100%;overflow:hidden;background:#ebebeb;position:relative}
+.cmda img,.cmda video{width:100%;height:100%;object-fit:cover;display:block}
+.mderr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;color:var(--mut);font-size:2rem;gap:8px}
+
+/* Action row */
+.cact{display:flex;align-items:center;padding:10px 16px;gap:12px}
+.lbtn{display:flex;align-items:center;gap:5px;background:none;font-size:.875rem;
+  font-weight:600;color:var(--txt);transition:transform .15s;padding:2px 4px;border-radius:4px}
+.lbtn:hover{transform:scale(1.15)}
+.lbtn:focus{outline:2px solid #405DE6}
+.lbtn .hrt{font-size:1.2rem}
+.lbtn.liked .hrt,.lbtn.liked .lct{color:var(--red)}
+.lbtn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.ctog{display:flex;align-items:center;gap:5px;background:none;font-size:.875rem;
+  font-weight:600;color:var(--txt);padding:2px 4px;border-radius:4px}
+.ctog:hover{color:var(--blue)}
+.ctog:focus{outline:2px solid #405DE6}
+
+/* Caption */
+.ccap{padding:4px 16px 8px;font-size:.875rem;line-height:1.4}
+.cun2{font-weight:600;margin-right:4px}
+.hashtag{color:var(--blue)}
+
+/* Comments section */
+.csec{padding:0 16px 4px}
+.clst{margin-bottom:6px}
+.citm{font-size:.875rem;margin-bottom:4px;line-height:1.4;display:flex;align-items:baseline;gap:4px}
+.cau{font-weight:600}
+.cts2{font-size:.7rem;color:var(--mut)}
+.vtog{background:none;color:var(--blue);font-size:.8rem;font-weight:600;
+  padding:0 16px 6px;display:block;text-align:left}
+.vtog:focus{outline:2px solid #405DE6}
+
+/* Comment input */
+.crow{display:flex;align-items:center;gap:8px;border-top:1px solid var(--bdr);padding:8px 16px}
+.cinp{flex:1;border:none;outline:none;font-size:.875rem;background:transparent;color:var(--txt)}
+.cinp::placeholder{color:var(--mut)}
+.cpst{background:none;color:#405DE6;font-size:.875rem;font-weight:700;
+  padding:2px 4px;border-radius:4px;transition:opacity .15s}
+.cpst:disabled{opacity:.4;cursor:not-allowed}
+.cpst:hover:not(:disabled){opacity:.7}
+.cpst:focus{outline:2px solid #405DE6}
+
+/* ── Empty / Error states ── */
+.state-box{display:none;text-align:center;padding:64px 24px}
+.state-box.on{display:block}
+.ei{font-size:5rem;margin-bottom:16px}
+.eh{font-size:1.2rem;font-weight:600;margin-bottom:8px}
+.es{font-size:.9rem;color:var(--mut);margin-bottom:20px}
+.ecta{display:inline-block;background:var(--gb);color:#fff;font-size:.9rem;font-weight:600;
+  border:none;border-radius:8px;padding:10px 20px;cursor:pointer;transition:filter .15s}
+.ecta:hover{filter:brightness(.92)}
+.ecta:focus{outline:2px solid #405DE6}
+
+/* ── Explore page ── */
+#explore-page{display:none}
+#explore-page.on{display:block}
+.explore-section{margin-bottom:32px}
+.explore-section h2{font-size:1rem;font-weight:700;padding:0 0 12px;color:var(--txt)}
+.tag-list{display:flex;flex-wrap:wrap;gap:8px}
+.tag-chip{background:#f0f0f0;color:var(--blue);font-size:.875rem;font-weight:600;
+  padding:6px 14px;border-radius:20px;cursor:pointer;transition:background .15s;border:none}
+.tag-chip:hover{background:#e0e8ff}
+.tag-chip:focus{outline:2px solid #405DE6}
+.tag-count{color:var(--mut);font-weight:400;font-size:.8rem;margin-left:4px}
+.explore-search{display:flex;gap:8px;margin-bottom:16px}
+.explore-search input{flex:1;border:1.5px solid var(--bdr);border-radius:8px;
+  padding:9px 14px;font-size:.9rem;color:var(--txt);transition:border-color .15s}
+.explore-search input:focus{border-color:#405DE6;outline:none}
+.explore-search button{background:var(--gb);color:#fff;border-radius:8px;
+  padding:9px 18px;font-size:.875rem;font-weight:600;transition:filter .15s}
+.explore-search button:hover{filter:brightness(.92)}
+.explore-search button:focus{outline:2px solid #405DE6}
+
+/* ── FAB ── */
+#fab{display:none;position:fixed;bottom:20px;right:20px;width:56px;height:56px;
+  border-radius:50%;background:var(--gb);color:#fff;font-size:1.6rem;
+  align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.25);
+  z-index:90;transition:filter .15s,transform .15s;border:none}
+#fab:hover{filter:brightness(.92);transform:scale(1.05)}
+#fab:focus{outline:2px solid #405DE6}
+
+/* ── Modals ── */
+.mbk{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;
+  align-items:center;justify-content:center}
+.mbk.open{display:flex}
+.modal{background:#fff;border-radius:16px;width:90%;max-width:480px;
+  box-shadow:0 8px 32px rgba(0,0,0,.2);overflow:hidden;animation:mi .2s ease}
+@keyframes mi{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.mhdr{display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;border-bottom:1px solid var(--bdr)}
+.mtit{font-size:1rem;font-weight:600}
+.mcls{background:none;font-size:1.2rem;color:var(--mut);padding:4px 8px;
+  border-radius:4px;transition:color .1s}
+.mcls:hover{color:var(--txt)}
+.mcls:focus{outline:2px solid #405DE6}
+.mbdy{padding:24px 20px}
+.fg{margin-bottom:16px}
+.fl{display:block;font-size:.875rem;font-weight:600;margin-bottom:6px}
+.fi{width:100%;border:1.5px solid var(--bdr);border-radius:6px;padding:10px 12px;
+  font-size:.9375rem;color:var(--txt);transition:border-color .15s;background:#fff}
+.fi:focus{border-color:#405DE6;outline:none}
+.fi.err{border-color:var(--red)}
+.ferr{font-size:.8rem;color:var(--red);margin-top:4px;display:none}
+.ferr.on{display:block}
+textarea.fi{resize:vertical;min-height:72px}
+.mtg{display:flex}
+.mtb{flex:1;padding:10px;border:1.5px solid var(--bdr);background:#fff;
+  font-size:.875rem;font-weight:600;color:var(--mut);transition:all .15s}
+.mtb:first-child{border-radius:6px 0 0 6px}
+.mtb:last-child{border-radius:0 6px 6px 0;border-left:none}
+.mtb.active{background:var(--gb);color:#fff;border-color:transparent}
+.mtb:focus{outline:2px solid #405DE6}
+.bsub{width:100%;padding:12px;background:var(--gb);color:#fff;border-radius:8px;
+  font-size:.9375rem;font-weight:700;border:none;cursor:pointer;
+  transition:filter .15s,opacity .15s;margin-top:8px}
+.bsub:hover:not(:disabled){filter:brightness(.92)}
+.bsub:focus{outline:2px solid #405DE6}
+.bsub:disabled{opacity:.6;cursor:not-allowed}
+
+/* ── Toast ── */
+#tc{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  z-index:500;display:flex;flex-direction:column-reverse;align-items:center;gap:8px;pointer-events:none}
+.toast{padding:12px 20px;border-radius:8px;font-size:.875rem;font-weight:600;color:#fff;
+  white-space:nowrap;animation:tin .25s ease;pointer-events:auto;max-width:340px;text-align:center}
+.toast.ok{background:var(--ok)}
+.toast.er{background:var(--red)}
+@keyframes tin{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes tout{from{transform:translateY(0);opacity:1}to{transform:translateY(20px);opacity:0}}
+.toast.hiding{animation:tout .25s ease forwards}
+
+/* ── Responsive ── */
+@media(max-width:600px){
+  #btn-nav-post{display:none}
+  #fab{display:flex}
+  #feed-col{padding:0}
+  .post-card{border-radius:0;border-left:none;border-right:none;margin-bottom:8px}
+  #navtabs .ntab{font-size:.72rem;padding:4px 9px}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<header id="header" role="banner">
+  <div id="logo" aria-label="Instagram Clone">&#128248; Instagram<sup style="font-size:.55rem;vertical-align:super">clone</sup></div>
+  <div id="hright">
+    <!-- Nav tabs -->
+    <nav id="navtabs" aria-label="Navigation">
+      <button class="ntab active" id="tab-feed" aria-pressed="true">&#127968; Feed</button>
+      <button class="ntab" id="tab-explore" aria-pressed="false">&#128269; Explore</button>
+    </nav>
+    <!-- User switcher -->
+    <div id="usw">
+      <button id="usb" aria-haspopup="listbox" aria-expanded="false" aria-label="Switch user">
+        <div id="uav" aria-hidden="true">&#128100;</div>
+        <span id="ulbl">No user</span>&#9662;
+      </button>
+      <div id="udd" role="listbox" aria-label="Select user">
+        <div id="udlist"></div>
+        <div class="ddiv"></div>
+        <div id="ddnu" role="option" tabindex="0" aria-label="Create new user">&#xFF0B; Create new user</div>
+      </div>
+    </div>
+    <button id="btn-nav-post" aria-label="Create new post">&#xFF0B; New Post</button>
+  </div>
+</header>
+
+<!-- ══ MAIN ══ -->
+<main id="main" role="main">
+  <div id="feed-col">
+
+    <!-- Feed view -->
+    <div id="feed-view">
+      <div id="feed" aria-live="polite" aria-label="Post feed"></div>
+      <div id="empty-state" class="state-box" role="status" aria-live="polite"></div>
+      <div id="error-state" class="state-box" role="alert">
+        <div class="ei">&#9888;&#65039;</div>
+        <div class="eh">Couldn't load posts.</div>
+        <div class="es">Check your connection and try again.</div>
+        <button class="ecta" id="btn-retry">Retry</button>
+      </div>
+    </div>
+
+    <!-- Explore view -->
+    <div id="explore-page">
+      <div class="explore-section">
+        <h2>&#128293; Trending Hashtags</h2>
+        <div id="trending-list" class="tag-list" aria-live="polite"></div>
+      </div>
+      <div class="explore-section">
+        <h2>&#128269; Search by Hashtag</h2>
+        <div class="explore-search">
+          <input id="tag-input" type="text" placeholder="#sunset" aria-label="Hashtag to search">
+          <button id="btn-tag-search">Search</button>
+        </div>
+        <div id="tag-results" aria-live="polite"></div>
+      </div>
+      <div class="explore-section">
+        <h2>&#128248; Recent Posts</h2>
+        <div id="explore-feed" aria-live="polite"></div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ══ FAB (mobile) ══ -->
+<button id="fab" aria-label="Create new post">&#xFF0B;</button>
+
+<!-- ══ MODAL: Create Post ══ -->
+<div id="modal-post" class="mbk" role="dialog" aria-modal="true" aria-labelledby="mpt-title">
+  <div class="modal">
+    <div class="mhdr">
+      <span class="mtit" id="mpt-title">Share a new post</span>
+      <button class="mcls" data-close="modal-post" aria-label="Close">&#x2715;</button>
+    </div>
+    <div class="mbdy">
+      <div class="fg">
+        <label class="fl" for="p-url">Media URL *</label>
+        <input class="fi" id="p-url" type="url" placeholder="https://example.com/photo.jpg" autocomplete="off">
+        <div class="ferr" id="p-url-err" role="alert"></div>
+      </div>
+      <div class="fg">
+        <span class="fl">Media Type *</span>
+        <div class="mtg" role="radiogroup" aria-label="Media type">
+          <button class="mtb active" id="mt-img" data-type="image" role="radio" aria-checked="true">&#128247; Image</button>
+          <button class="mtb" id="mt-vid" data-type="video" role="radio" aria-checked="false">&#127916; Video</button>
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fl" for="p-cap">Caption</label>
+        <textarea class="fi" id="p-cap" rows="3" placeholder="Use #hashtags to categorize your post"></textarea>
+      </div>
+      <button class="bsub" id="btn-post-sub">Share</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Create User ══ -->
+<div id="modal-user" class="mbk" role="dialog" aria-modal="true" aria-labelledby="mut-title">
+  <div class="modal">
+    <div class="mhdr">
+      <span class="mtit" id="mut-title">Create account</span>
+      <button class="mcls" data-close="modal-user" aria-label="Close">&#x2715;</button>
+    </div>
+    <div class="mbdy">
+      <div class="fg">
+        <label class="fl" for="u-name">Username * <small style="font-weight:400;color:var(--mut)">(no spaces)</small></label>
+        <input class="fi" id="u-name" type="text" placeholder="john_doe" autocomplete="off" spellcheck="false">
+        <div class="ferr" id="u-name-err" role="alert"></div>
+      </div>
+      <div class="fg">
+        <label class="fl" for="u-disp">Display Name *</label>
+        <input class="fi" id="u-disp" type="text" placeholder="John Doe">
+        <div class="ferr" id="u-disp-err" role="alert"></div>
+      </div>
+      <button class="bsub" id="btn-user-sub">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Toast container ══ -->
+<div id="tc" aria-live="assertive" aria-atomic="false"></div>
+
+<script>
+'use strict';
+
+// ── App State ────────────────────────────────────────────────────────────────
+var S = {
+  uid:      null,       // current user id (string | null)
+  uobj:     null,       // current user object
+  users:    new Map(),  // id → {id, username, display_name}
+  liked:    new Set(),  // post_ids liked by current user (optimistic)
+  openCmts: new Set(),  // post_ids with comments expanded
+  cmtCache: {},         // post_id → [comment, ...]
+  view:     'feed',     // 'feed' | 'explore'
+  selMT:    'image'     // selected media type in post modal
+};
+
+// ── Palette ──────────────────────────────────────────────────────────────────
+var PALETTE = ['#405DE6','#833AB4','#C13584','#F77737','#FCAF45',
+               '#12b668','#e1306c','#5851db'];
+
+function acolor(s) {
+  var h = 0;
+  for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return PALETTE[Math.abs(h) % PALETTE.length];
+}
+
+function initial(s) { return (s || '?')[0].toUpperCase(); }
+
+function relT(iso) {
+  var d = Math.floor((Date.now() - new Date(iso)) / 1000);
+  if (isNaN(d) || d < 0) d = 0;
+  if (d < 60)    return 'just now';
+  if (d < 3600)  return Math.floor(d / 60) + ' min ago';
+  if (d < 86400) return Math.floor(d / 3600) + ' hours ago';
+  return Math.floor(d / 86400) + ' days ago';
+}
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function capHtml(t) {
+  return esc(t).replace(/#(\w+)/g, '<span class="hashtag">#$1</span>');
+}
+
+function setFerr(inp, el, msg) {
+  if (msg) {
+    inp.classList.add('err'); el.textContent = msg; el.classList.add('on');
+  } else {
+    inp.classList.remove('err'); el.textContent = ''; el.classList.remove('on');
+  }
+}
+
+// ── API helper ────────────────────────────────────────────────────────────────
+function api(path, opts) {
+  opts = opts || {};
+  return fetch(path, {
+    method:  opts.method || 'GET',
+    headers: Object.assign({'Content-Type': 'application/json'}, opts.headers || {}),
+    body:    opts.body
+  }).then(function(r) {
+    if (!r.ok) {
+      return r.json().catch(function() { return {}; }).then(function(j) {
+        var e = new Error(j.detail || ('HTTP ' + r.status));
+        e.status = r.status;
+        throw e;
+      });
+    }
+    return r.status === 204 ? null : r.json();
+  });
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function toast(msg, type) {
+  var el = document.createElement('div');
+  el.className = 'toast ' + (type || 'ok');
+  el.textContent = msg;
+  el.setAttribute('role', 'status');
+  document.getElementById('tc').appendChild(el);
+  setTimeout(function() {
+    el.classList.add('hiding');
+    el.addEventListener('animationend', function() { el.remove(); }, {once: true});
+  }, 3000);
+}
+
+// ── Skeleton loader ───────────────────────────────────────────────────────────
+function showSkels(containerId) {
+  var f = document.getElementById(containerId);
+  f.innerHTML = '';
+  for (var i = 0; i < 3; i++) {
+    f.insertAdjacentHTML('beforeend',
+      '<div class="skc" aria-hidden="true">' +
+      '<div class="skhr"><div class="sk skci"></div>' +
+      '<div><div class="sk skls"></div><div class="sk sklx"></div></div></div>' +
+      '<div class="sk skm"></div>' +
+      '<div class="skar"><div class="sk skb"></div><div class="sk skb"></div></div>' +
+      '<div class="skcp"><div class="sk skt"></div><div class="sk skts"></div></div>' +
+      '</div>');
+  }
+}
+
+// ── Build post card HTML ───────────────────────────────────────────────────────
+function buildCard(p) {
+  var u    = S.users.get(p.user_id) || {};
+  var uname = u.username || 'unknown';
+  var dname = u.display_name || uname;
+  var col  = acolor(p.user_id);
+  var lk   = S.liked.has(p.id);
+  var med  = p.media_type === 'video'
+    ? '<video controls src="' + esc(p.media_url) + '" preload="metadata"></video>'
+    : '<img src="' + esc(p.media_url) + '" alt="Post by ' + esc(uname) + '" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">';
+  var cap = p.caption
+    ? '<div class="ccap"><span class="cun2">' + esc(uname) + '</span>' + capHtml(p.caption) + '</div>'
+    : '';
+  return (
+    '<article class="post-card" data-post-id="' + p.id + '">' +
+    '<div class="chdr">' +
+    '<div class="cav" style="background:' + col + '">' + initial(dname) + '</div>' +
+    '<div class="cui"><div class="cun">' + esc(uname) + '</div>' +
+    '<div class="cts">' + relT(p.created_at) + '</div></div>' +
+    '</div>' +
+    '<div class="cmda">' + med +
+    '<div class="mderr" style="display:none">&#128444;&#65039;<span style="font-size:.8rem">Image unavailable</span></div>' +
+    '</div>' +
+    '<div class="cact">' +
+    '<button class="lbtn' + (lk ? ' liked' : '') + '" data-action="like" data-post-id="' + p.id + '" aria-label="' + (lk ? 'Unlike' : 'Like') + ' post">' +
+    '<span class="hrt">' + (lk ? '&#x2665;' : '&#x2661;') + '</span>' +
+    '<span class="lct">' + p.like_count + '</span></button>' +
+    '<button class="ctog" data-action="toggle-cmts" data-post-id="' + p.id + '" aria-expanded="false">&#128172; ' +
+    '<span class="cct">' + p.comment_count + '</span></button>' +
+    '</div>' +
+    cap +
+    '<div class="csec">' +
+    (p.comment_count > 0
+      ? '<button class="vtog" data-action="toggle-cmts" data-post-id="' + p.id + '">View all ' + p.comment_count + ' comment' + (p.comment_count !== 1 ? 's' : '') + '</button>'
+      : '') +
+    '<div class="clst" id="clst-' + p.id + '" hidden></div>' +
+    '</div>' +
+    '<div class="crow">' +
+    '<input class="cinp" data-post-id="' + p.id + '" placeholder="Add a comment\u2026" aria-label="Add a comment">' +
+    '<button class="cpst" data-action="post-cmt" data-post-id="' + p.id + '" disabled>Post</button>' +
+    '</div>' +
+    '</article>'
+  );
+}
+
+// ── Render a list of posts into a container ───────────────────────────────────
+function renderPosts(containerId, posts) {
+  var el = document.getElementById(containerId);
+  if (!posts || !posts.length) { el.innerHTML = ''; return false; }
+  var html = '';
+  posts.forEach(function(p) { html += buildCard(p); });
+  el.innerHTML = html;
+  return true;
+}
+
+// ── Load user objects for unknown post authors ─────────────────────────────────
+function ensureUsers(posts) {
+  var needed = [];
+  posts.forEach(function(p) { if (!S.users.has(p.user_id)) needed.push(p.user_id); });
+  if (!needed.length) return Promise.resolve();
+  return Promise.all(needed.map(function(id) {
+    return api('/users/' + id).then(function(u) { S.users.set(u.id, u); }).catch(function() {});
+  }));
+}
+
